@@ -1,0 +1,151 @@
+{
+  "Juno": {
+    "day_time": "Saturday 815am-845am",
+    "parent_number": ""
+  },
+  "Emmett": {
+    "day_time": "Saturday 9am-930am",
+    "parent_number": "",
+    "terms": [
+      {
+        "year": 2026,
+        "months": [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May"
+        ],
+        "day_time": "Saturday 9am-930am",
+        "specified_absent_dates": [],
+        "replacement_dates": [
+          "04-03",
+          "11-04",
+          "11-07"
+        ],
+        "special_slots": []
+      }
+    ]
+  },
+  "Ze Xuan": {
+    "day_time": "Saturday 930am-1015am",
+    "parent_number": "",
+    "terms": [
+      {
+        "year": 2026,
+        "months": [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul"
+        ],
+        "day_time": "Saturday 930am-1015am",
+        "specified_absent_dates": [],
+        "replacement_dates": [
+          "12-07",
+          "19-07"
+        ],
+        "special_slots": []
+      }
+    ]
+  },
+  "Jaeho": {
+    "day_time": "Saturday 1015am-11am",
+    "parent_number": ""
+  },
+  "Tara": {
+    "day_time": "Saturday 11am-1145am",
+    "parent_number": ""
+  },
+  "Janice": {
+    "day_time": "Saturday 1145am-1230pm",
+    "parent_number": "",
+    "terms": [
+      {
+        "year": 2026,
+        "months": [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul"
+        ],
+        "day_time": "Saturday 1145am-1230pm",
+        "specified_absent_dates": [],
+        "replacement_dates": [],
+        "special_slots": []
+      }
+    ]
+  },
+  "You Qi": {
+    "day_time": "Saturday 1230pm-115pm",
+    "parent_number": "",
+    "terms": [
+      {
+        "year": 2026,
+        "months": [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul"
+        ],
+        "day_time": "Saturday 1230pm-115pm",
+        "specified_absent_dates": [],
+        "replacement_dates": [
+          "12-07",
+          "19-07"
+        ],
+        "special_slots": []
+      }
+    ]
+  },
+  "Jaren": {
+    "day_time": "Saturday 115pm-2pm",
+    "parent_number": "",
+    "terms": [
+      {
+        "year": 2026,
+        "months": [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul"
+        ],
+        "day_time": "Saturday 115pm-2pm",
+        "specified_absent_dates": [],
+        "replacement_dates": [
+          "14-06",
+          "17-07"
+        ],
+        "special_slots": []
+      }
+    ]
+  },
+  "Jaryl": {
+    "day_time": "Saturday 2pm-230pm",
+    "parent_number": ""
+  },
+  "Yu Zhe": {
+    "day_time": "Saturday 315pm-4pm",
+    "parent_number": ""
+  },
+  "Haruka": {
+    "day_time": "Saturday 4pm-445pm",
+    "parent_number": ""
+  },
+  "Edelle and Ellysha": {
+    "day_time": "Saturday 515pm-645pm",
+    "parent_number": ""
+  }
+}

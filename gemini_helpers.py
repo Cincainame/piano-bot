@@ -51,6 +51,10 @@ def _route(contents):
 def route_text(text: str):
     return _route(text)
 
+
+def route_text_with_context(text: str, context: str):
+    return _route([context, text])
+
 def route_audio(audio_bytes: bytes):
     return _route([types.Part.from_bytes(data=audio_bytes, mime_type="audio/ogg")])
 

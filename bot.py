@@ -1,27 +1,99 @@
 import logging
+import json
 import random
 import roster_logic
 import schedule_logic
-from telegram import Update
-from telegram.ext import Application, MessageHandler, filters, ContextTypes
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 
 from schedule_logic import build_full_schedule, load_student
-from gemini_helpers import extract_from_photo, route_text, route_audio
+from gemini_helpers import extract_from_photo, route_text, route_text_with_context, route_audio
 from config import PONDERING_LIST, TELEGRAM_BOT_TOKEN
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+PENDING_ADD_STUDENT_KEY = "pending_add_student"
+ADD_STUDENT_CONFIRM_CALLBACK = "add_student_confirm"
+ADD_STUDENT_EDIT_CALLBACK = "add_student_edit"
+ADD_STUDENT_CANCEL_CALLBACK = "add_student_cancel"
+
 def build_wa_link(parent_number: str, message: str) -> str:
     import urllib.parse
     return f"https://wa.me/{parent_number}?text={urllib.parse.quote(message)}"
+
+
+def _get_pending_add_student(context: ContextTypes.DEFAULT_TYPE):
+    return context.user_data.get(PENDING_ADD_STUDENT_KEY)
+
+
+def _clear_pending_add_student(context: ContextTypes.DEFAULT_TYPE):
+    context.user_data.pop(PENDING_ADD_STUDENT_KEY, None)
+
+
+def _set_pending_add_student(context: ContextTypes.DEFAULT_TYPE, args: dict, stage: str):
+    context.user_data[PENDING_ADD_STUDENT_KEY] = {
+        "intent": "add_student_to_student_roster",
+        "args": args,
+        "stage": stage,
+    }
+
+
+def _pending_add_student_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("Confirm ✅", callback_data=ADD_STUDENT_CONFIRM_CALLBACK),
+            InlineKeyboardButton("Edit ✏️", callback_data=ADD_STUDENT_EDIT_CALLBACK),
+            InlineKeyboardButton("Cancel ❌", callback_data=ADD_STUDENT_CANCEL_CALLBACK),
+        ]
+    ])
+
+
+def _pending_add_student_context(pending: dict) -> str:
+    return (
+        "You are revising a pending Telegram action.\n"
+        "Current intent: add_student_to_student_roster\n"
+        f"Current args: {json.dumps(pending.get('args', {}), ensure_ascii=False)}\n\n"
+        "The user will now describe only the change they want, for example:\n"
+        "- change the name to Jayson\n"
+        "- change the time to 6pm-6:30pm\n\n"
+        "Update the current action using the user's correction. Keep all fields that are not mentioned unchanged."
+    )
+
+
+def _pending_add_student_summary(args: dict) -> str:
+    return (
+        "You sure this correct ah:\n"
+        f"• name: {args.get('name')}\n"
+        f"• start time: {args.get('start_time')}\n"
+        f"• end time: {args.get('end_time')}"
+    )
+
+
+async def _prompt_add_student_confirmation(message, context: ContextTypes.DEFAULT_TYPE, args: dict):
+    _set_pending_add_student(context, args, stage="awaiting_confirmation")
+    await message.reply_text(
+        _pending_add_student_summary(args) + "\n\nWhat would you like to do next?",
+        reply_markup=_pending_add_student_keyboard(),
+    )
+
+
+async def _finalize_add_student(message, context: ContextTypes.DEFAULT_TYPE, args: dict):
+    roster_logic.add_student_to_student_roster(
+        name=args["name"],
+        start_time=args["start_time"],
+        end_time=args["end_time"],
+    )
+    _clear_pending_add_student(context)
+    await message.reply_text(f"Added {args['name']} to the roster.")
+    await message.reply_text(f"Updated roster:\n{roster_logic.timetable_to_text()}")
 
 async def send_draft(update: Update, student_name: str, schedule_text: str):
     student = load_student(student_name)  # raises ValueError if not found
     wa_link = build_wa_link(student["parent_number"], schedule_text)
     await update.message.reply_text(f"{schedule_text}\n\n👉 Tap to open & send: {wa_link}")
 
-async def dispatch(update: Update, intent, args):
+async def dispatch(update: Update, context: ContextTypes.DEFAULT_TYPE, intent, args):
     await update.message.reply_text(f"Intent: {intent}, args: {args}")
 
     reply_text = ""
@@ -35,13 +107,7 @@ async def dispatch(update: Update, intent, args):
         roster = roster_logic.timetable_to_text()
         await update.message.reply_text(f"Current student roster:\n{roster}")
     elif intent == "add_student_to_student_roster":
-        roster_logic.add_student_to_student_roster(
-            name=args["name"],
-            start_time=args["start_time"],
-            end_time=args["end_time"]
-        )
-        await update.message.reply_text(f"Added {args['name']} to the roster.")
-        await update.message.reply_text(f"Updated roster:\n{roster_logic.timetable_to_text()}")
+        await _prompt_add_student_confirmation(update.message, context, args)
     elif intent is None:
         await update.message.reply_text(
             "Sorry, I didn't catch a clear request. Try:\n"
@@ -60,8 +126,37 @@ async def dispatch(update: Update, intent, args):
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
+        pending_add_student = _get_pending_add_student(context)
+        if pending_add_student:
+            if pending_add_student.get("stage") == "editing":
+                intent, args = route_text_with_context(
+                    update.message.text,
+                    _pending_add_student_context(pending_add_student),
+                )
+
+                if intent != "add_student_to_student_roster" or not args:
+                    await update.message.reply_text(
+                        "I couldn't understand that change. Try something like:\n"
+                        '• "change the name to Jayson"\n'
+                        '• "change the time to 6pm-6:30pm"'
+                    )
+                    return
+
+                merged_args = {**pending_add_student.get("args", {}), **args}
+                _set_pending_add_student(context, merged_args, stage="awaiting_confirmation")
+                await update.message.reply_text(
+                    _pending_add_student_summary(merged_args) + "\n\nWhat would you like to do next?",
+                    reply_markup=_pending_add_student_keyboard(),
+                )
+                return
+
+            await update.message.reply_text(
+                "Please use the buttons below to confirm, edit, or cancel this pending action."
+            )
+            return
+
         intent, args = route_text(update.message.text)
-        await dispatch(update, intent, args)
+        await dispatch(update, context, intent, args)
     except ValueError as e:
         await update.message.reply_text(f"⚠️ {e}")  # e.g. student not found in student_data.json
     except Exception:
@@ -74,7 +169,7 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
         voice_file = await update.message.voice.get_file()
         audio_bytes = await voice_file.download_as_bytearray()
         intent, args = route_audio(bytes(audio_bytes))
-        await dispatch(update, intent, args)
+        await dispatch(update, context, intent, args)
     except ValueError as e:
         await update.message.reply_text(f"⚠️ {e}")
     except Exception:
@@ -125,6 +220,48 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception:
         logger.exception("handle_photo failed")
         await update.message.reply_text("⚠️ Couldn't process that photo — try again?")
+
+
+async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    if query is None:
+        return
+
+    pending_add_student = _get_pending_add_student(context)
+    if not pending_add_student:
+        await query.answer("This request is no longer pending.", show_alert=True)
+        return
+
+    if query.data == ADD_STUDENT_CONFIRM_CALLBACK:
+        try:
+            await query.answer()
+            await query.message.edit_reply_markup(reply_markup=None)
+            await _finalize_add_student(query.message, context, pending_add_student["args"])
+        except ValueError as e:
+            await query.message.reply_text(f"⚠️ {e}")
+            await _clear_pending_add_student(context)
+        return
+
+    if query.data == ADD_STUDENT_EDIT_CALLBACK:
+        pending_add_student["stage"] = "editing"
+        context.user_data[PENDING_ADD_STUDENT_KEY] = pending_add_student
+        await query.answer()
+        await query.message.edit_reply_markup(reply_markup=None)
+        await query.message.reply_text(
+            "What would you like to change?\n"
+            'You can say something like "change the name to Jayson" or '
+            '"change the time to 6pm-6:30pm".'
+        )
+        return
+
+    if query.data == ADD_STUDENT_CANCEL_CALLBACK:
+        _clear_pending_add_student(context)
+        await query.answer()
+        await query.message.edit_reply_markup(reply_markup=None)
+        await query.message.reply_text("Cancelled.")
+        return
+
+    await query.answer("Unknown action.", show_alert=True)
         
 # Global safety net — catches anything that slips past the try/excepts above
 async def global_error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
@@ -136,6 +273,7 @@ def main():
     app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     app.add_handler(MessageHandler(filters.VOICE, handle_voice))
+    app.add_handler(CallbackQueryHandler(handle_callback_query))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))  
     app.add_error_handler(global_error_handler)
     app.run_polling()

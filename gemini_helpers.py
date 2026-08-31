@@ -2,7 +2,7 @@ from google import genai
 from google.genai import types
 import json
 from config import GEMINI_API_KEY
-from prompt import PHOTO_PROMPT, VOICE_PROMPT
+from prompt import PHOTO_PROMPT, SYSTEM_INSTRUCTION, VOICE_PROMPT
 from schedule_logic import build_roster_block
 
 client = genai.Client(api_key=GEMINI_API_KEY)
@@ -12,6 +12,10 @@ GEMINI_MODEL = "gemini-3.5-flash-lite"
 def get_student_roster() -> None:
     """Get the current student roster or timetable schedule."""
     return None
+
+def add_student_to_student_roster(name: str, start_time: str, end_time: str) -> dict:
+    """Add a new student to the roster with their lesson time."""
+    return {"name": name, "start_time": start_time, "end_time": end_time}
 
 def get_full_schedule_for_student(name: str) -> dict:
     """Get a student's current 11-lesson schedule, no absences. Use when asked to show/send/provide a schedule."""
@@ -26,13 +30,14 @@ def report_absence(name: str, absent_date: str) -> dict:
     """Report a student will be absent on a date (dd-mm format), and rebuild their schedule around it."""
     return {"name": name, "absent_date": absent_date}
 
-TOOLS = [get_student_roster, get_full_schedule_for_student, report_absence, get_schedule_for_term]
+TOOLS = [get_student_roster, add_student_to_student_roster, get_full_schedule_for_student, report_absence, get_schedule_for_term]
 
 def _route(contents):
     response = client.models.generate_content(
         model=GEMINI_MODEL,
         contents=contents,
         config=types.GenerateContentConfig(
+            system_instruction=SYSTEM_INSTRUCTION,
             tools=TOOLS,
             automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
         )

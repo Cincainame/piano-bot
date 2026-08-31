@@ -22,9 +22,15 @@ async def send_draft(update: Update, student_name: str, schedule_text: str):
     await update.message.reply_text(f"{schedule_text}\n\n👉 Tap to open & send: {wa_link}")
 
 async def dispatch(update: Update, intent, args):
-    print(f"Dispatching intent: {intent}, args: {args}")
     await update.message.reply_text(f"Intent: {intent}, args: {args}")
 
+    reply_text = ""
+    for key, value in args.items():
+        if value is None or value == "None" or value == "":
+            reply_text += f"⚠️ Missing required argument: {key}\n"
+    if reply_text:
+        await update.message.reply_text(reply_text)
+        return
     if intent == "get_student_roster":
         roster = roster_logic.timetable_to_text()
         await update.message.reply_text(f"Current student roster:\n{roster}")

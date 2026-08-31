@@ -9,6 +9,10 @@ client = genai.Client(api_key=GEMINI_API_KEY)
 
 GEMINI_MODEL = "gemini-3.5-flash-lite"
 
+def get_student_roster() -> None:
+    """Get the current student roster or timetable schedule."""
+    return None
+
 def get_full_schedule_for_student(name: str) -> dict:
     """Get a student's current 11-lesson schedule, no absences. Use when asked to show/send/provide a schedule."""
     return {"name": name}
@@ -22,7 +26,7 @@ def report_absence(name: str, absent_date: str) -> dict:
     """Report a student will be absent on a date (dd-mm format), and rebuild their schedule around it."""
     return {"name": name, "absent_date": absent_date}
 
-TOOLS = [get_full_schedule_for_student, report_absence, get_schedule_for_term]
+TOOLS = [get_student_roster, get_full_schedule_for_student, report_absence, get_schedule_for_term]
 
 def _route(contents):
     response = client.models.generate_content(

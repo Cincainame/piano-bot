@@ -1,5 +1,6 @@
 import logging
 import random
+import roster_logic
 import schedule_logic
 from telegram import Update
 from telegram.ext import Application, MessageHandler, filters, ContextTypes
@@ -23,13 +24,17 @@ async def send_draft(update: Update, student_name: str, schedule_text: str):
 async def dispatch(update: Update, intent, args):
     print(f"Dispatching intent: {intent}, args: {args}")
     await update.message.reply_text(f"Intent: {intent}, args: {args}")
-    # if intent is None:
-    #     await update.message.reply_text(
-    #         "Sorry, I didn't catch a clear request. Try:\n"
-    #         "• \"Show me Emmett's schedule\"\n"
-    #         "• \"Edelle can't come 19 August\""
-    #     )
-    #     return
+
+    if intent == "get_student_roster":
+        roster = roster_logic.timetable_to_text()
+        await update.message.reply_text(f"Current student roster:\n{roster}")
+    elif intent is None:
+        await update.message.reply_text(
+            "Sorry, I didn't catch a clear request. Try:\n"
+            "• \"Show me Emmett's schedule\"\n"
+            "• \"Edelle can't come 19 August\""
+        )
+        return
     # if intent == "get_full_schedule_for_student":
     #     text = build_full_schedule(name=args["name"])
     # elif intent == "report_absence":

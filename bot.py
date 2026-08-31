@@ -34,6 +34,14 @@ async def dispatch(update: Update, intent, args):
     if intent == "get_student_roster":
         roster = roster_logic.timetable_to_text()
         await update.message.reply_text(f"Current student roster:\n{roster}")
+    elif intent == "add_student_to_student_roster":
+        roster_logic.add_student_to_student_roster(
+            name=args["name"],
+            start_time=args["start_time"],
+            end_time=args["end_time"]
+        )
+        await update.message.reply_text(f"Added {args['name']} to the roster.")
+        await update.message.reply_text(f"Updated roster:\n{roster_logic.timetable_to_text()}")
     elif intent is None:
         await update.message.reply_text(
             "Sorry, I didn't catch a clear request. Try:\n"

@@ -9,6 +9,10 @@ httpx = "==0.28.1"
 httpcore = "==1.0.9"
 google-genai = "==2.20.0"
 python-dotenv = "==1.0.0"
+supabase = "*"
+sqlalchemy = "*"
+alembic = "*"
+psycopg2-binary = "*"
 
 [dev-packages]
 

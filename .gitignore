@@ -3,6 +3,12 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Local environment and Supabase CLI state
+.env
+.env.*
+!.env.example
+supabase/.temp/
+
 # C extensions
 *.so
 

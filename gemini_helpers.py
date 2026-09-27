@@ -9,6 +9,7 @@ client = genai.Client(api_key=GEMINI_API_KEY)
 
 GEMINI_MODEL = "gemini-3.5-flash-lite"
 
+ # Intent list for Gemini to recognize  
 def get_student_roster() -> None:
     """Get the current student roster or timetable schedule."""
     return None

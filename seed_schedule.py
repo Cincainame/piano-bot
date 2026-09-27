@@ -1,0 +1,39 @@
+from database import Student, create_tables, session_scope
+
+schedule = [
+    {"day": "Saturday", "start": "09:00", "end": "09:30", "students": "Emmett"},
+    {"day": "Saturday", "start": "09:30", "end": "10:15", "students": "Lo Ze Xuan"},
+    {"day": "Saturday", "start": "10:15", "end": "11:00", "students": "Jaeho"},
+    {"day": "Saturday", "start": "11:00", "end": "11:45", "students": "Tara"},
+    {"day": "Saturday", "start": "11:45", "end": "12:30", "students": "Janice"},
+    {"day": "Saturday", "start": "12:30", "end": "13:15", "students": "You Qi"},
+    {"day": "Saturday", "start": "13:15", "end": "14:00", "students": "Jaren"},
+    {"day": "Saturday", "start": "14:00", "end": "14:30", "students": "Jaryl"},
+    {"day": "Saturday", "start": "14:30", "end": "15:00", "students": "Juno"},
+    {"day": "Saturday", "start": "15:15", "end": "16:00", "students": "Yu Zhe"},
+    {"day": "Saturday", "start": "16:00", "end": "16:45", "students": "Haruka"},
+    {"day": "Saturday", "start": "17:15", "end": "18:45", "students": "Edelle and Ellysha"},
+]
+
+
+def seed_schedule() -> int:
+    create_tables()
+    inserted_count = 0
+    with session_scope() as session:
+        for slot in schedule:
+            session.add(
+                Student(
+                    name=slot["students"],
+                    start_time=slot["start"],
+                    end_time=slot["end"],
+                    day_of_week=slot["day"],
+                )
+            )
+            inserted_count += 1
+
+    return inserted_count
+
+
+if __name__ == "__main__":
+    count = seed_schedule()
+    print(f"Inserted {count} student rows.")

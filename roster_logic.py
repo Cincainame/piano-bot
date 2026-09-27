@@ -1,16 +1,28 @@
 from datetime import datetime
-import json
 
-CONST_TIMETABLE_FILE = "student_roster.json"
+from sqlalchemy import select
 
-def read_timetable_json():
-    with open(CONST_TIMETABLE_FILE, "r") as f:
-        timetable = json.load(f)
-    return timetable
+from database import Student, session_scope
+
+
+def read_timetable():
+    with session_scope() as session:
+        students = session.scalars(
+            select(Student).order_by(Student.day_of_week, Student.start_time)
+        ).all()
+    return [
+        {
+            "day": student.day_of_week,
+            "start": student.start_time,
+            "end": student.end_time,
+            "students": student.name,
+        }
+        for student in students
+    ]
 
 def timetable_to_text():
     lines = []
-    timetable = read_timetable_json()
+    timetable = read_timetable()
 
     for lesson in timetable:
         day = lesson["day"]
@@ -43,34 +55,36 @@ def timetable_to_text():
     return "\n".join(lines)
 
 def add_student_to_student_roster(name: str, start_time: str, end_time: str):
-    timetable = read_timetable_json()
     start_time, end_time = normalize_time_range(start_time, end_time)
-    conflict = check_time_conflict(timetable, start=start_time, end=end_time)
+    with session_scope() as session:
+        students = session.scalars(
+            select(Student).where(Student.day_of_week == "Saturday")
+        ).all()
+        timetable = [
+            {
+                "day": student.day_of_week,
+                "start": student.start_time,
+                "end": student.end_time,
+                "students": student.name,
+            }
+            for student in students
+        ]
+        conflict = check_time_conflict(timetable, start=start_time, end=end_time)
 
-    if len(conflict) > 0:
-        raise ValueError(f"Time slot {start_time}-{end_time} is already taken by {conflict[0]['students']}.")
+        if conflict:
+            raise ValueError(
+                f"Time slot {start_time}-{end_time} is already taken by "
+                f"{conflict[0]['students']}."
+            )
 
-    new_lesson = {
-        "day": "Saturday",
-        "start": start_time,
-        "end": end_time,
-        "students": name
-    }
-        # Insert chronologically
-    for idx, lesson in enumerate(timetable):
-        if start_time < lesson["start"]:
-            timetable.insert(idx, new_lesson)
-            break
-    else:
-        # New lesson is after all existing lessons
-        timetable.append(new_lesson)
-
-    # Save
-    with open(CONST_TIMETABLE_FILE, "w", encoding="utf-8") as f:
-        json.dump(timetable, f, indent=4)
-        return
-    
-    raise ValueError(f"Problem adding {name} to the roster at {start_time}-{end_time}.")
+        session.add(
+            Student(
+                name=name,
+                start_time=start_time,
+                end_time=end_time,
+                day_of_week="Saturday",
+            )
+        )
 
 
 

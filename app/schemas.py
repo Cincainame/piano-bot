@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 from typing import Optional
 
 from pydantic import BaseModel, Field
@@ -33,6 +33,73 @@ class AttendanceResponse(AttendanceBase):
     replacement_date: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class StudentBase(BaseModel):
+    name: str
+    start_time: time
+    end_time: time
+    phone_no: str
+
+
+class StudentCreate(StudentBase):
+    pass
+
+
+class StudentResponse(StudentBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+
+class TermBase(BaseModel):
+    student_id: int
+    year: int
+    term: list[int]
+
+
+class TermCreate(TermBase):
+    pass
+
+
+class TermResponse(TermBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+
+class ReplacementBase(BaseModel):
+    term_id: int
+    replacement_date: date
+
+
+class ReplacementCreate(ReplacementBase):
+    pass
+
+
+class ReplacementResponse(ReplacementBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+
+class AbsenceBase(BaseModel):
+    term_id: int
+    absent_date: date
+
+
+class AbsenceCreate(AbsenceBase):
+    pass
+
+
+class AbsenceResponse(AbsenceBase):
+    id: int
 
     class Config:
         from_attributes = True

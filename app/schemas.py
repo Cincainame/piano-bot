@@ -58,6 +58,7 @@ class StudentBase(BaseModel):
     start_time: time
     end_time: time
     phone_no: str
+    day_of_week: str
 
 
 class StudentCreate(StudentBase):
@@ -93,6 +94,7 @@ class ReplacementBase(BaseModel):
 
 class ReplacementCreate(ReplacementBase):
     pass
+    is_waived: bool = False
 
 
 class ReplacementResponse(ReplacementBase):

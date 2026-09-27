@@ -25,12 +25,12 @@ class Student(Base):
     start_time: Mapped[time] = mapped_column(Time, nullable=False)
     end_time: Mapped[time] = mapped_column(Time, nullable=False)
     phone_no: Mapped[str] = mapped_column(String(32), nullable=False)
-
+    day_of_week: Mapped[str] = mapped_column(String(32), nullable=False)
     terms: Mapped[list["Term"]] = relationship(
         back_populates="student", cascade="all, delete-orphan"
     )
-
-
+    created_at: Mapped[date] = mapped_column(Date, nullable=False, server_default="now()")
+    
 class Term(Base):
     __tablename__ = "term"
 
@@ -61,6 +61,7 @@ class Replacement(Base):
 
     term: Mapped[Term] = relationship(back_populates="replacements")
 
+    is_waived: Mapped[bool] = mapped_column(nullable=False, default=False)
 
 class Absence(Base):
     __tablename__ = "absence"

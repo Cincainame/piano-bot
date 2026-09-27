@@ -1,10 +1,12 @@
 import calendar
 import json
+import logging
 from datetime import date
 import os
+from pathlib import Path
 from typing import Optional, TypedDict, List, Dict, Any
 
-from dotenv.main import logger
+logger = logging.getLogger(__name__)
 
 lessons_per_term = 11
 today = date.today()
@@ -44,8 +46,9 @@ class StudentData(TypedDict):
     terms: list[StudentTerm]
 
 
-DATA_FILE = "./student_data.json" 
-STUDENT_FILE = "./student_roster.txt"  # for storing parent numbers and other info
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DATA_FILE = PROJECT_ROOT / "data" / "student_data.json"
+STUDENT_FILE = PROJECT_ROOT / "data" / "student_roster.json"
 
 def _load_all():
     with open(DATA_FILE) as f:
@@ -54,25 +57,20 @@ def _load_all():
 def _save_all(data):
     # write to a temp file first, then swap — avoids a corrupted file
     # if the bot crashes mid-write
-    tmp_file = DATA_FILE + ".tmp"
+    tmp_file = DATA_FILE.with_name(DATA_FILE.name + ".tmp")
     with open(tmp_file, "w") as f:
         json.dump(data, f, indent=2)
     os.replace(tmp_file, DATA_FILE)
     
 
 def parse_roster() -> dict[str, str]:
-
-    roster = {}
     with open(STUDENT_FILE) as f:
-        for line in f:
-            parts = line.split()
-            if len(parts) < 3:
-                continue
-            day_time = " ".join(parts[:2])
-            name = " ".join(parts[2:]).strip()
+        entries = json.load(f)
 
-            roster[name] = day_time
-    return roster
+    return {
+        entry["students"]: f'{entry["day"]} {entry["start"]}-{entry["end"]}'
+        for entry in entries
+    }
 
 def build_roster_block() -> str:
     """Turns {name: day_time} into readable 'day_time name' lines for the prompt."""

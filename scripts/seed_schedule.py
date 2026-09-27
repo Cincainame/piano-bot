@@ -1,4 +1,4 @@
-from database import Student, create_tables, session_scope
+from bot.database import Student, create_tables, session_scope
 
 schedule = [
     {"day": "Saturday", "start": "09:00", "end": "09:30", "students": "Emmett"},

@@ -1,14 +1,13 @@
 import logging
 import json
 import random
-import roster_logic
-import schedule_logic
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 
-from schedule_logic import build_full_schedule, load_student
-from gemini_helpers import extract_from_photo, route_text, route_text_with_context, route_audio
-from config import PONDERING_LIST, TELEGRAM_BOT_TOKEN
+from . import roster_logic, schedule_logic
+from .schedule_logic import build_full_schedule, load_student
+from .gemini_helpers import extract_from_photo, route_text, route_text_with_context, route_audio
+from .config import PONDERING_LIST, TELEGRAM_BOT_TOKEN
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

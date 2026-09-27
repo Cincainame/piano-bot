@@ -1,9 +1,9 @@
 from google import genai
 from google.genai import types
 import json
-from config import GEMINI_API_KEY
-from prompt import PHOTO_PROMPT, SYSTEM_INSTRUCTION, VOICE_PROMPT
-from schedule_logic import build_roster_block
+from .config import GEMINI_API_KEY
+from .prompt import PHOTO_PROMPT, SYSTEM_INSTRUCTION, VOICE_PROMPT
+from .schedule_logic import build_roster_block
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 

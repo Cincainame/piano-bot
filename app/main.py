@@ -1,10 +1,11 @@
 from fastapi import FastAPI
 
-from app.routers import attendance
+from app.routers import attendance, term
 
 app = FastAPI(title="Piano Bot API")
 
 app.include_router(attendance.router)
+app.include_router(term.router)
 
 
 @app.get("/")

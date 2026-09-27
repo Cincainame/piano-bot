@@ -10,6 +10,11 @@ class AttendanceBase(BaseModel):
     absent_date: date
     replacement_date: Optional[date] = None
 
+class TermBase(BaseModel):
+    student_id: int
+    year: int
+    term: list[int]
+
 
 class AttendanceCreate(AttendanceBase):
     """Body for POST /attendance — fields the client provides."""
@@ -37,6 +42,16 @@ class AttendanceResponse(AttendanceBase):
     class Config:
         from_attributes = True
 
+class TermCreate(TermBase):
+    pass
+
+class TermResponse(TermBase):
+    id: int
+    student_id: int
+    year: int
+    term: list[int]
+    class Config:
+        from_attributes = True
 
 class StudentBase(BaseModel):
     name: str
@@ -64,8 +79,6 @@ class TermBase(BaseModel):
 
 class TermCreate(TermBase):
     pass
-
-
 class TermResponse(TermBase):
     id: int
 

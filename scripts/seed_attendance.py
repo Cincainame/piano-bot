@@ -1,6 +1,6 @@
 from sqlalchemy import select
 
-from database import Attendance, Student, create_tables, session_scope
+from bot.database import Attendance, Student, create_tables, session_scope
 
 attendance_data = [
     {"studentName": "Lo Ze Xuan", "term": "Sep, Oct, Nov", "absent_date": "10/10, 28/11", "replacement_date": ""}

@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import select
 
-from database import Student, session_scope
+from .database import Student, session_scope
 
 
 def read_timetable():

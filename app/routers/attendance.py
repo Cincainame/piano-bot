@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
 from app.schemas import AttendanceCreate, AttendanceUpdate, AttendanceResponse
-from supabase_client import supabase
+from app.services.supabase_client import supabase
 
 router = APIRouter(prefix="/attendance", tags=["attendance"])
 

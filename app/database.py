@@ -54,6 +54,9 @@ class Replacement(Base):
     __tablename__ = "replacement"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    student_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("student.id", ondelete="CASCADE"), nullable=False
+    )
     term_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("term.id", ondelete="CASCADE"), nullable=False
     )
@@ -67,6 +70,9 @@ class Absence(Base):
     __tablename__ = "absence"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    student_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("student.id", ondelete="CASCADE"), nullable=False
+    )
     term_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("term.id", ondelete="CASCADE"), nullable=False
     )

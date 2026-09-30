@@ -4,8 +4,9 @@ Piano bot that helps schedule student's timetable through telegram
 ## Supabase setup
 
 The bot connects to the Supabase Postgres database through SQLAlchemy. The
-schedule seed data is in `scripts/seed_schedule.py`; `psycopg2` remains the PostgreSQL
-driver used by SQLAlchemy.
+schedule seed data is in `scripts/seed_schedule.py`; `pg8000` (pure Python) is the
+PostgreSQL driver used by SQLAlchemy — set `DATABASE_URL` to a
+`postgresql+pg8000://...` connection string.
 
 1. Run `pipenv install`.
 2. Copy `.env.example` to `.env` and replace `DATABASE_URL` with your Supabase

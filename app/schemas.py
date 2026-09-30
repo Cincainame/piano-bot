@@ -3,6 +3,22 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
+class ListingStudentIds(BaseModel):
+    ids: list[int] = Field(max_length=200)
+
+class AbsenceBase(BaseModel):
+    student_id: int
+    term_id: Optional[int] = None
+    absent_date: date
+
+class AbsenceCreate(AbsenceBase):
+    pass
+
+class AbsenceResponse(AbsenceBase):
+    id: int
+
+    class Config:
+        from_attributes = True
 
 class AttendanceBase(BaseModel):
     student_id: int

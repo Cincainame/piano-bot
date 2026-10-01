@@ -1,24 +1,32 @@
 from datetime import date, datetime, time
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 class ListingStudentIds(BaseModel):
     ids: list[int] = Field(max_length=200)
 
 class AbsenceBase(BaseModel):
-    student_id: int
     term_id: Optional[int] = None
     absent_date: date
 
 class AbsenceCreate(AbsenceBase):
-    pass
+    student_id: int
 
 class AbsenceResponse(AbsenceBase):
     id: int
+    student_id: int
 
-    class Config:
-        from_attributes = True
+    model_config= ConfigDict(from_attributes=True)
+
+class SkippedStudent(BaseModel):
+    student_id: int
+    name: str
+    reason: str
+
+class TeacherAbsenceResponse(BaseModel):
+    created: list[AbsenceResponse]
+    skipped: list[SkippedStudent]
 
 class AttendanceBase(BaseModel):
     student_id: int
@@ -87,22 +95,6 @@ class StudentResponse(StudentBase):
     class Config:
         from_attributes = True
 
-
-class TermBase(BaseModel):
-    student_id: int
-    year: int
-    term: list[int]
-
-
-class TermCreate(TermBase):
-    pass
-class TermResponse(TermBase):
-    id: int
-
-    class Config:
-        from_attributes = True
-
-
 class ReplacementBase(BaseModel):
     term_id: int
     replacement_date: date
@@ -120,17 +112,3 @@ class ReplacementResponse(ReplacementBase):
         from_attributes = True
 
 
-class AbsenceBase(BaseModel):
-    term_id: int
-    absent_date: date
-
-
-class AbsenceCreate(AbsenceBase):
-    pass
-
-
-class AbsenceResponse(AbsenceBase):
-    id: int
-
-    class Config:
-        from_attributes = True

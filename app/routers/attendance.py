@@ -2,10 +2,14 @@ from app.services.attendance import create_absence
 from app.services.students import get_all_students
 from fastapi import APIRouter, HTTPException
 
-from app.schemas import AbsenceBase, AbsenceCreate, AbsenceResponse, AttendanceCreate, AttendanceUpdate, AttendanceResponse, SkippedStudent, TeacherAbsenceResponse
+from app.schemas import AbsenceBase, AbsenceCreate, AbsenceResponse, AttendanceResponse, SkippedStudent, TeacherAbsenceResponse
 from app.services.supabase_client import supabase
 
 router = APIRouter(prefix="/attendance", tags=["attendance"])
+
+@router.get("/get-student-attendance/{student_id}", response_model=AttendanceResponse)
+def get_student_attendance(student_id: int, term_id: int | None = None):
+    pass
 
 @router.post("/report-student-absence/{student_id}", response_model=AbsenceResponse, status_code=201)
 def report_student_absence(student_id: int, body: AbsenceBase):

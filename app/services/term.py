@@ -2,7 +2,7 @@ from datetime import date
 
 from fastapi import HTTPException
 
-from app.schemas import TermCreate
+from app.schemas import TermCreate, TermResponse
 from app.services.supabase_client import supabase
 
 def get_term_db(student_id: int):
@@ -58,3 +58,27 @@ def get_latest_term_id(student_id: int) -> int | None:
         new_term = add_term_if_needed(student_id)
         return new_term["id"]
     return result.data[0]["id"]
+
+
+def find_term_id_by_month(
+    student_id: int,
+    month: int | None = None,
+    year: int | None = None,
+) -> TermResponse | None:
+    year = year or date.today().year
+
+    query = (
+        supabase.table("term")
+        .select("*")
+        .eq("student_id", student_id)
+        .eq("year", year)
+    )
+
+    if month is not None:
+        query = query.contains("term", [str(month)])
+
+    result = query.order("id", desc=True).limit(1).execute()
+
+    if not result.data:
+        return None
+    return result.data[0]

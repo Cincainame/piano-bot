@@ -19,3 +19,15 @@ def get_student(student_id: int) -> StudentResponse:
     if not data:
         raise HTTPException(status_code=404, detail="Student not found")
     return StudentResponse(**data[0])
+
+def get_student_by_name(name: str) -> StudentResponse:
+    data = (
+        supabase.table("student")
+        .select("*")
+        .ilike("name", f"%{name}%")
+        .execute()
+        .data
+    )
+    if not data:
+        raise HTTPException(status_code=404, detail="Student not found")
+    return StudentResponse(**data[0])

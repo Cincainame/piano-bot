@@ -9,6 +9,15 @@ class ListingStudentIds(BaseModel):
 class AbsenceBase(BaseModel):
     term_id: Optional[int] = None
     absent_date: date
+    
+class AttendanceCreate(BaseModel):
+    student_id: int
+    month: int
+
+class AttendanceResponse(BaseModel):
+    phone: str
+    message: str
+    whatsapp_url: str
 
 class AbsenceCreate(AbsenceBase):
     student_id: int
@@ -39,32 +48,6 @@ class TermBase(BaseModel):
     year: int
     term: list[int]
 
-
-class AttendanceCreate(AttendanceBase):
-    """Body for POST /attendance — fields the client provides."""
-    pass
-
-
-class AttendanceUpdate(BaseModel):
-    """Body for PATCH /attendance/{id} — every field is optional."""
-    student_id: Optional[int] = None
-    term: Optional[str] = None
-    absent_date: Optional[date] = None
-    replacement_date: Optional[date] = None
-
-
-class AttendanceResponse(AttendanceBase):
-    """Full row as returned by Supabase — includes DB-managed columns."""
-    id: int
-    student_id: int
-    term: str
-    absent_date: str
-    replacement_date: Optional[str] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
 
 class TermCreate(TermBase):
     pass

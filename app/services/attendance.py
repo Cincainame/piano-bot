@@ -1,10 +1,54 @@
 from datetime import date
 
+from app.services.students import get_student
 from fastapi import HTTPException
 
 from app.schemas import AbsenceCreate
 from app.services.supabase_client import supabase
-from app.services.term import get_latest_term_id
+from app.services.term import get_latest_term_id, get_term_db
+
+def get_replacement_dates(student_id: int, term_id: int):
+    replacement_dates = []
+    
+    data = (
+        supabase.table("replacement")
+        .select("*")
+        .eq("student_id", student_id)
+        .eq("term_id", term_id)
+        .execute()
+        .data
+    )
+    
+    for record in data:
+        replacement_dates.append(record["replacement_date"])
+    
+    return replacement_dates
+
+def get_absent_dates(student_id: int, term_id: int):
+    absent_dates = []
+    
+    data = (
+        supabase.table("absence")
+        .select("*")
+        .eq("student_id", student_id)
+        .eq("term_id", term_id)
+        .execute()
+        .data
+    )
+    
+    for record in data:
+        absent_dates.append(record["absent_date"])
+    
+    return absent_dates
+
+def get_student_attendance(student_id: int, term_id: int):
+    absent_dates = get_absent_dates(student_id, term_id)
+    replacement_dates = get_replacement_dates(student_id, term_id)
+    
+    student = get_student(student_id)
+    term = get_term_db(term_id)
+    
+    return absent_dates
 
 def create_absence(record: AbsenceCreate):
     if record.term_id is None or record.term_id == 0:

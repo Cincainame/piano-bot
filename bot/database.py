@@ -1,11 +1,10 @@
-from datetime import datetime
+from datetime import datetime, time
 import os
 from contextlib import contextmanager
-from sqlite3 import Time
 from typing import Iterator
 
 from dotenv import load_dotenv
-from sqlalchemy import String, create_engine, DateTime, func, ForeignKey
+from sqlalchemy import String, Time, create_engine, DateTime, func, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
 
 load_dotenv()

@@ -4,10 +4,11 @@ import random
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 
-from . import roster_logic, schedule_logic
-from .schedule_logic import build_full_schedule, load_student
-from .gemini_helpers import extract_from_photo, route_text, route_text_with_context, route_audio
-from .config import PONDERING_LIST, TELEGRAM_BOT_TOKEN
+import roster_logic
+import schedule_logic
+from schedule_logic import build_full_schedule, load_student
+from gemini_helpers import extract_from_photo, route_text, route_text_with_context, route_audio
+from config import PONDERING_LIST, TELEGRAM_BOT_TOKEN
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -114,6 +115,8 @@ async def dispatch(update: Update, context: ContextTypes.DEFAULT_TYPE, intent, a
             "• \"Edelle can't come 19 August\""
         )
         return
+    else:
+        await update.message.reply_text(f"⚠️ I don't know how to handle '{intent}' yet.")
     # if intent == "get_full_schedule_for_student":
     #     text = build_full_schedule(name=args["name"])
     # elif intent == "report_absence":

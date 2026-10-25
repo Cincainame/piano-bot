@@ -1,13 +1,19 @@
+from typing import TypedDict
+
 from google import genai
 from google.genai import types
 import json
-from .config import GEMINI_API_KEY
-from .prompt import PHOTO_PROMPT, SYSTEM_INSTRUCTION, VOICE_PROMPT
-from .schedule_logic import build_roster_block
+from config import GEMINI_API_KEY
+from prompt import PHOTO_PROMPT, SYSTEM_INSTRUCTION, VOICE_PROMPT
+from schedule_logic import build_roster_block
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 GEMINI_MODEL = "gemini-3.5-flash-lite"
+
+class Absence(TypedDict):
+    name: str
+    absent_date: str
 
  # Intent list for Gemini to recognize  
 def get_student_roster() -> None:
@@ -27,9 +33,9 @@ def get_schedule_for_term(name: str, months: list[str], year: int = None) -> dic
     Use this when a specific date range or term is mentioned. If no year given, assume current year."""
     return {"name": name, "months": months, "year": year}
 
-def report_absence(name: str, absent_date: str) -> dict:
-    """Report a student will be absent on a date (dd-mm format), and rebuild their schedule around it."""
-    return {"name": name, "absent_date": absent_date}
+def report_absence(absences: list[Absence]) -> dict:
+    """Report that one or more students will be absent on a date (dd-mm format), and rebuild their schedule around it."""
+    return {"absences": absences}
 
 TOOLS = [get_student_roster, add_student_to_student_roster, get_full_schedule_for_student, report_absence, get_schedule_for_term]
 

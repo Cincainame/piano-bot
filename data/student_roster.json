@@ -15,19 +15,13 @@
         "day": "Saturday",
         "start": "10:15",
         "end": "11:00",
-        "students": "Jaeho"
+        "students": "Janice"
     },
     {
         "day": "Saturday",
         "start": "11:00",
         "end": "11:45",
         "students": "Tara"
-    },
-    {
-        "day": "Saturday",
-        "start": "11:45",
-        "end": "12:30",
-        "students": "Janice"
     },
     {
         "day": "Saturday",
@@ -50,8 +44,8 @@
     {
         "day": "Saturday",
         "start": "14:30",
-        "end": "15:00",
-        "students": "Juno"
+        "end": "15:15",
+        "students": "Jake"
     },
     {
         "day": "Saturday",
@@ -64,6 +58,12 @@
         "start": "16:00",
         "end": "16:45",
         "students": "Haruka"
+    },
+       {
+        "day": "Saturday",
+        "start": "16:15",
+        "end": "17:00",
+        "students": "Juno"
     },
     {
         "day": "Saturday",

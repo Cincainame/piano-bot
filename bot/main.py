@@ -1,9 +1,29 @@
+import sys
+from pathlib import Path
+
+# bot/main.py mixes package imports (from app...) with bare imports
+# (roster_logic, config, gemini_helpers...). For `from app...` to resolve, the
+# project root must be on sys.path; for the bare imports, bot/ must be. Python
+# only adds the script's own directory automatically, so bootstrap both. Lets
+# the bot run via `python bot/main.py`, `python -m bot.main`, or `python main.py`
+# from inside bot/.
+_THIS_DIR = str(Path(__file__).resolve().parent)
+_PROJECT_ROOT = str(Path(__file__).resolve().parent.parent)
+for _p in (_PROJECT_ROOT, _THIS_DIR):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
 import logging
 import json
 import random
+from datetime import date
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, MessageHandler, CallbackQueryHandler, filters, ContextTypes
+from fastapi import HTTPException
 
+from app.services.students import get_student_by_name
+from app.services import attendance as attendance_services
+from app.schemas import AbsenceCreate
 import roster_logic
 import schedule_logic
 from schedule_logic import build_full_schedule, load_student
@@ -93,9 +113,17 @@ async def send_draft(update: Update, student_name: str, schedule_text: str):
     wa_link = build_wa_link(student["parent_number"], schedule_text)
     await update.message.reply_text(f"{schedule_text}\n\n👉 Tap to open & send: {wa_link}")
 
+def _to_absence_date(raw: str) -> date:
+    """Gemini's report_absence tool returns dd-mm (e.g. '04-07'); the API's
+    AbsenceBase needs a full date. Assume the current year — same convention
+    as get_schedule_for_term ('If no year given, assume current year')."""
+    day, month = raw.strip().split("-")
+    return date(date.today().year, int(month), int(day))
+
 async def dispatch(update: Update, context: ContextTypes.DEFAULT_TYPE, intent, args):
     await update.message.reply_text(f"Intent: {intent}, args: {args}")
 
+    args = args or {}  # route returns (None, None) when nothing matched — keeps the None-intent branch below reachable
     reply_text = ""
     for key, value in args.items():
         if value is None or value == "None" or value == "":
@@ -108,6 +136,30 @@ async def dispatch(update: Update, context: ContextTypes.DEFAULT_TYPE, intent, a
         await update.message.reply_text(f"Current student roster:\n{roster}")
     elif intent == "add_student_to_student_roster":
         await _prompt_add_student_confirmation(update.message, context, args)
+    elif intent == "report_absence":
+        await update.message.reply_text(f"Processing absence report for {len(args['absences'])} students...")
+        for absence in args["absences"]:
+            student_name = absence["name"]
+            absent_date = absence["absent_date"]
+            try:
+                student = get_student_by_name(student_name)  
+                
+                record = AbsenceCreate(
+                    student_id=student.id,
+                    absent_date=_to_absence_date(absent_date),
+                )
+                created = attendance_services.create_absence(record)
+                await update.message.reply_text(
+                    f"✅ Recorded {student_name} absent on {absent_date} "
+                    f"(term {created.get('term_id', '?')})."
+                )
+            except HTTPException as e:
+                # 404 student not found / 400 duplicate absence or no term — user-facing, not a crash
+                await update.message.reply_text(f"⚠️ {student_name}: {e.detail}")
+            except ValueError:
+                await update.message.reply_text(
+                    f"⚠️ {student_name}: couldn't read date '{absent_date}' — expected dd-mm (e.g. 04-07)."
+                )
     elif intent is None:
         await update.message.reply_text(
             "Sorry, I didn't catch a clear request. Try:\n"

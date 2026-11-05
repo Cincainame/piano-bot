@@ -1,5 +1,5 @@
 
-from http.client import HTTPException
+from fastapi import HTTPException
 
 from app.schemas import StudentResponse
 from app.services.supabase_client import supabase
